@@ -9,5 +9,5 @@ wheels/
 # Virtual environments
 .venv
 
-storage/**
-storage_txt/**
+src/storage/**
+src/storage_txt/**
