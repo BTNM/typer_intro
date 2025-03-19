@@ -194,6 +194,38 @@ def rename(
         dir_okay=True,
     ),
 ):
+    """Rename JSON files directly using translated novel titles."""
+    typer.echo("Renaming files...")
+
+    os.makedirs(directory, exist_ok=True)
+    jsonl_files = find_jsonl_files(directory)
+
+    for file in jsonl_files:
+        file_dir = os.path.dirname(file)
+        safe_title = translate_file_title(file)
+
+        if safe_title and safe_title != "Translation error invalid source language":
+            new_file = os.path.join(file_dir, f"{safe_title}.jl")
+            if file != new_file:  # Only rename if name is different
+                if not os.path.exists(new_file):
+                    typer.echo(f"Renaming to: {new_file}")
+                    os.rename(file, new_file)
+                else:
+                    typer.echo(f"File exists, skipping: {new_file}")
+        else:
+            typer.echo(f"Translation failed for: {file}")
+
+
+@app.command()
+def copy_rename(
+    directory: str = typer.Argument(
+        "storage",
+        help="Input directory storage for raw jsonl files",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+):
     """Rename and translate Japanese novel titles and organize them in new directories."""
     typer.echo("Renaming files...")
 
