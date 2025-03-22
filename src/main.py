@@ -78,69 +78,12 @@ def list(
             typer.echo(file)
 
 
-# @app.command()
-# def rename(
-#     input_directory: str = typer.Argument(
-#         "../storage",
-#         help="Input directory storage for raw jsonl files",
-#         exists=True,
-#         file_okay=False,
-#         dir_okay=True,
-#     ),
-#     # output_directory: str = typer.Argument(
-#     #     "../storage_txt",
-#     #     help="Output directory Storage for renamed txt files",
-#     #     exists=True,
-#     #     file_okay=False,
-#     #     dir_okay=True,
-#     # ),
-# ):
-#     typer.echo("Renaming files...")
-#     jsonl_files = glob.glob(os.path.join(input_directory, "**", "*.jl"), recursive=True)
-#     for file in jsonl_files:
-#         # Read the first line of the JSONL file to get the novel title
-#         with open(file, "r", encoding="utf-8") as f:
-#             first_line = f.readline()
-#             data = json.loads(first_line)
-#             novel_title = data.get("novel_title", "")
-
-#         # Translate the title to English using asyncio
-#         translated_title = asyncio.run(translate_to_eng(novel_title, "ja"))
-#         print(f"translated_title: {translated_title}")
-
-#         # Create a valid filename from the translated title
-#         safe_title = (
-#             "".join(
-#                 word
-#                 for word in translated_title
-#                 if word.isalnum() or word in (" ", "-", "_")
-#             )
-#             .strip()
-#             .replace(" ", "_")
-#         )
-#         print(f"safe_title: {safe_title}")
-
-#         # # Only proceed if translation was successful
-#         # if safe_title and safe_title != "Translation error invalid source language":
-#         #     # Create the new file path with .txt extension in output_directory
-#         #     new_file = os.path.join(output_directory, f"{safe_title}.txt")
-
-#         #     # Copy the file to the new location with new name
-#         #     if not os.path.exists(new_file):
-#         #         typer.echo(f"Copying {file} to {new_file}")
-#         #         shutil.copy2(file, new_file)
-#         #     else:
-#         #         typer.echo(f"File {new_file} already exists, skipping...")
-#         # else:
-#         #     typer.echo(f"Skipping {file} due to translation error")
-
-
 def find_jsonl_files(directory: str):
     """Find all .jl files recursively in the given directory."""
     return glob.glob(os.path.join(directory, "**", "*.jl"), recursive=True)
 
 
-def get_new_directory(file, directory: str, name: str) -> str:
+def get_new_directory(file, home_user: str, directory: str, name: str) -> str:
     """Create a new directory with _txt suffix."""
     # Get relative path to maintain directory structure
     file_relative_path: str = os.path.relpath(file, directory)
@@ -151,7 +94,7 @@ def get_new_directory(file, directory: str, name: str) -> str:
     # scrapyd_webnovel_jsonl/syosetu_spider
 
     # Create corresponding output directory
-    storage_directory = os.path.join(name, directory_path)
+    storage_directory = os.path.join(home_user, name, directory_path)
     os.makedirs(storage_directory, exist_ok=True)
     # typer.echo(f"Output directory: {storage_directory}")
     # storage_txt/scrapyd_webnovel_jsonl/syosetu_spider
@@ -185,9 +128,30 @@ def translate_file_title(file: str):
 
 
 @app.command()
+def unpack_jsonl(
+    filename: str = typer.Argument(
+        help="Input JSONL filename to unpack into text file",
+        exists=True,
+        file_okay=True,
+    ),
+    length: int = typer.Option(
+        10, "--length", "-l", help="chapter text length to unpack jsonl file into"
+    ),
+):
+    """Unpack the JSONL file into a text file."""
+    typer.echo(f"Unpacking {filename} into text file with length {length}...")
+
+    with open(filename, "r", encoding="utf-8") as f:
+        for line in f:
+            data = json.loads(line)
+
+    pass
+
+
+@app.command()
 def rename(
     directory: str = typer.Argument(
-        "storage",
+        default="storage_jl",  # Remove default value to allow any path
         help="Input directory storage for raw jsonl files",
         exists=True,
         file_okay=False,
@@ -195,10 +159,16 @@ def rename(
     ),
 ):
     """Rename JSON files directly using translated novel titles."""
-    typer.echo("Renaming files...")
+    home_user = os.path.expanduser("~")
+    directory_path = os.path.normpath(os.path.join(home_user, directory))
+    typer.echo(f"Processing directory: {directory_path}")
 
-    os.makedirs(directory, exist_ok=True)
-    jsonl_files = find_jsonl_files(directory)
+    if not os.path.exists(directory_path):
+        typer.echo(f"Directory not found at path: {directory_path}")
+        raise typer.Exit(1)
+
+    # os.makedirs(directory_path, exist_ok=True)
+    jsonl_files = find_jsonl_files(directory_path)
 
     for file in jsonl_files:
         file_dir = os.path.dirname(file)
@@ -209,7 +179,7 @@ def rename(
             if file != new_file:  # Only rename if name is different
                 if not os.path.exists(new_file):
                     typer.echo(f"Renaming to: {new_file}")
-                    os.rename(file, new_file)
+                    # os.rename(file, new_file)
                 else:
                     typer.echo(f"File exists, skipping: {new_file}")
         else:
@@ -219,7 +189,7 @@ def rename(
 @app.command()
 def copy_rename(
     directory: str = typer.Argument(
-        "storage",
+        "storage_jl",
         help="Input directory storage for raw jsonl files",
         exists=True,
         file_okay=False,
@@ -229,21 +199,29 @@ def copy_rename(
     """Rename and translate Japanese novel titles and organize them in new directories."""
     typer.echo("Renaming files...")
 
+    home_user = os.path.expanduser("~")
+    directory_path = os.path.normpath(os.path.join(home_user, directory))
+    typer.echo(f"Processing directory: {directory_path}")
+
+    if not os.path.exists(directory_path):
+        typer.echo(f"Directory not found at path: {directory_path}")
+        raise typer.Exit(1)
+
     # Create base output directory with _txt suffix
     storage_directory_name = f"{directory}_txt"
-    os.makedirs(storage_directory_name, exist_ok=True)
+    # os.makedirs(storage_directory_name, exist_ok=True)
 
     # Find all .jl files recursively
-    jsonl_files = find_jsonl_files(directory)
+    jsonl_files = find_jsonl_files(directory_path)
 
     for file in jsonl_files:
         storage_directory_path = get_new_directory(
-            file, directory, storage_directory_name
+            file, home_user, directory_path, storage_directory_name
         )
         safe_title = translate_file_title(file)
 
         # Create output file path
-        new_file = os.path.join(storage_directory_path, f"{safe_title}.txt")
+        new_file = os.path.join(storage_directory_path, f"{safe_title}.jl")
 
         # Copy file if translation successful
         if safe_title and safe_title != "Translation error invalid source language":
