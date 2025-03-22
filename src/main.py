@@ -6,52 +6,45 @@ import sys
 import glob
 import shutil
 import json
-import asyncio
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from typer_func import translate_to_eng
+from typer_func import find_jsonl_files, get_new_directory, translate_file_title
 
 
 app = typer.Typer()
 
 
-class FileFormat(str, Enum):
-    CSV = "csv"
-    JSON = "json"
-    JSONLINES = "jsonl"
+# @app.command()
+# def convert(
+#     input_file: str,
+#     output_format: FileFormat,
+#     output_file: Optional[str] = None,
+#     verbose: bool = False,
+# ):
+#     """
+#     Convert files between different formats.
+#     """
+#     if verbose:
+#         typer.echo(f"Converting {input_file} to {output_format}")
+
+#     # Conversion logic would go here
+#     typer.echo(f"Converted to {output_format}")
 
 
-@app.command()
-def convert(
-    input_file: str,
-    output_format: FileFormat,
-    output_file: Optional[str] = None,
-    verbose: bool = False,
-):
-    """
-    Convert files between different formats.
-    """
-    if verbose:
-        typer.echo(f"Converting {input_file} to {output_format}")
-
-    # Conversion logic would go here
-    typer.echo(f"Converted to {output_format}")
-
-
-@app.command()
-def process(
-    files: list[str],
-    debug: bool = typer.Option(False, "--debug", "-d", help="Enable debug mode"),
-    force: bool = typer.Option(False, "--force", "-f", help="Force processing"),
-):
-    """
-    Process multiple files at once.
-    """
-    for file in files:
-        typer.echo(f"Processing {file}")
-        if debug:
-            typer.echo("Debug info...")
+# @app.command()
+# def process(
+#     files: list[str],
+#     debug: bool = typer.Option(False, "--debug", "-d", help="Enable debug mode"),
+#     force: bool = typer.Option(False, "--force", "-f", help="Force processing"),
+# ):
+#     """
+#     Process multiple files at once.
+#     """
+#     for file in files:
+#         typer.echo(f"Processing {file}")
+#         if debug:
+#             typer.echo("Debug info...")
 
 
 @app.command()
@@ -76,55 +69,6 @@ def list(
             typer.echo(f"{file} - Size: {file_stats.st_size / (1024 * 1024):.2f} MB")
         else:
             typer.echo(file)
-
-
-def find_jsonl_files(directory: str):
-    """Find all .jl files recursively in the given directory."""
-    return glob.glob(os.path.join(directory, "**", "*.jl"), recursive=True)
-
-
-def get_new_directory(file, home_user: str, directory: str, name: str) -> str:
-    """Create a new directory with _txt suffix."""
-    # Get relative path to maintain directory structure
-    file_relative_path: str = os.path.relpath(file, directory)
-    # typer.echo(f"file relative path: {file_relative_path}")
-    # scrapyd_webnovel_jsonl/syosetu_spider/960159f6ff8611ef85850242ac110002.jl
-    directory_path = os.path.dirname(file_relative_path)
-    # typer.echo(f"Directory path: {directory_path}")
-    # scrapyd_webnovel_jsonl/syosetu_spider
-
-    # Create corresponding output directory
-    storage_directory = os.path.join(home_user, name, directory_path)
-    os.makedirs(storage_directory, exist_ok=True)
-    # typer.echo(f"Output directory: {storage_directory}")
-    # storage_txt/scrapyd_webnovel_jsonl/syosetu_spider
-
-    return storage_directory
-
-
-def translate_file_title(file: str):
-    """Translate the title of the novel from Japanese to English."""
-    # Read and translate title
-    with open(file, "r", encoding="utf-8") as f:
-        first_line = f.readline()
-        data = json.loads(first_line)
-        novel_title = data.get("novel_title", "")
-
-    translated_title = asyncio.run(translate_to_eng(novel_title, "ja"))
-    # typer.echo(f"Translating: {novel_title} -> {translated_title}")
-
-    # Create safe filename
-    safe_title = (
-        "".join(
-            word
-            for word in translated_title
-            if word.isalnum() or word in (" ", "-", "_")
-        )
-        .strip()
-        .replace(" ", "_")
-    )
-
-    return safe_title
 
 
 @app.command()
