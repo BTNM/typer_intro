@@ -1,10 +1,11 @@
 [project]
-name = "typer-intro"
+name = "webnovel-unpacker"
 version = "0.1.0"
-description = "Add your description here"
+description = "A tool for unpacking web novel JSONL files into text format."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "googletrans>=4.0.2",
+    "jsonlines>=4.0.0",
     "typer>=0.15.2",
 ]
