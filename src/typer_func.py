@@ -53,16 +53,10 @@ def get_new_directory(file, home_user: str, directory: str, name: str) -> str:
     return storage_directory
 
 
-def translate_file_title(file: str):
+def translate_safe_title(title: str):
     """Translate the title of the novel from Japanese to English."""
-    # Read and translate title
-    with open(file, "r", encoding="utf-8") as f:
-        first_line = f.readline()
-        data = json.loads(first_line)
-        novel_title = data.get("novel_title", "")
-
-    translated_title = asyncio.run(translate_to_eng(novel_title, "ja"))
-    # typer.echo(f"Translating: {novel_title} -> {translated_title}")
+    translated_title = asyncio.run(translate_to_eng(title, "ja"))
+    # typer.echo(f"Translating: {title} -> {translated_title}")
 
     # Create safe filename
     safe_title = (
@@ -76,6 +70,17 @@ def translate_file_title(file: str):
     )
 
     return safe_title
+
+
+def translate_file_title(file: str):
+    """Translate the title of the novel from Japanese to English."""
+    # Read and translate title
+    with open(file, "r", encoding="utf-8") as f:
+        first_line = f.readline()
+        data = json.loads(first_line)
+        novel_title = data.get("novel_title", "")
+
+    return translate_safe_title(novel_title)
 
 
 if __name__ == "__main__":
