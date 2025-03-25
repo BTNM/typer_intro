@@ -21,38 +21,6 @@ from typer_func import (
 app = typer.Typer()
 
 
-# @app.command()
-# def convert(
-#     input_file: str,
-#     output_format: FileFormat,
-#     output_file: Optional[str] = None,
-#     verbose: bool = False,
-# ):
-#     """
-#     Convert files between different formats.
-#     """
-#     if verbose:
-#         typer.echo(f"Converting {input_file} to {output_format}")
-
-#     # Conversion logic would go here
-#     typer.echo(f"Converted to {output_format}")
-
-
-# @app.command()
-# def process(
-#     files: list[str],
-#     debug: bool = typer.Option(False, "--debug", "-d", help="Enable debug mode"),
-#     force: bool = typer.Option(False, "--force", "-f", help="Force processing"),
-# ):
-#     """
-#     Process multiple files at once.
-#     """
-#     for file in files:
-#         typer.echo(f"Processing {file}")
-#         if debug:
-#             typer.echo("Debug info...")
-
-
 @app.command()
 def list(
     directory: str = typer.Argument(
@@ -75,26 +43,6 @@ def list(
             typer.echo(f"{file} - Size: {file_stats.st_size / (1024 * 1024):.2f} MB")
         else:
             typer.echo(file)
-
-
-# def unpack_jsonl(
-#     filename: str = typer.Argument(
-#         help="Input JSONL filename to unpack into text file",
-#         exists=True,
-#         file_okay=True,
-#     ),
-#     length: int = typer.Option(
-#         10, "--length", "-l", help="chapter text length to unpack jsonl file into"
-#     ),
-# ):
-#     """Unpack the JSONL file into a text file."""
-#     typer.echo(f"Unpacking {filename} into text file with length {length}...")
-
-#     with open(filename, "r", encoding="utf-8") as f:
-#         for line in f:
-#             data = json.loads(line)
-
-#     pass
 
 
 def increase_chapter_modulo_rest_check(
@@ -183,8 +131,6 @@ def output_text_to_file(file_path: str, chapter_text: str):
         file_path (str): The path where where the directory, novel name and filename into a path
         chapter_text (str): The content of the chapter to be saved.
     """
-    # Create parent directory if it doesn't exist
-    # os.makedirs(os.path.dirname(file_path), exist_ok=True)
     # opens the file for writing with utf-8 encoding and writes the chapter content to the file
     with open(file_path, "w", encoding="utf-8") as text_file:
         text_file.write(chapter_text)
