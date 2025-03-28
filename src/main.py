@@ -7,6 +7,9 @@ import typer
 from typing import Optional
 from enum import Enum
 import jsonlines
+from novel_package import NovelPackage
+from processor import ChapterProcessor
+
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -246,6 +249,87 @@ def unpack(
         # typer.echo(f"directory_path: {directory_path}")
         typer.echo(f"Unpacking: {file}")
         read_jsonl_file(file, directory_path, length)
+
+
+def read_jsonl_file2(
+    file: str,
+    directory_path: str,
+    output_chapter_range: int = 10,
+    start_chapter: Optional[int] = None,
+):
+    """Process JSONL file and write chapter chunks"""
+    novel = NovelPackage(
+        file=file,
+        directory_path=directory_path,
+        output_chapter_range=output_chapter_range,
+        start_chapter=start_chapter,
+    )
+
+    processor = ChapterProcessor()
+
+    with jsonlines.open(file, "r") as reader:
+        for chapter in reader.iter(type=dict, skip_invalid=True):
+            if processor.check_skip_chapter(chapter):
+                continue
+
+            chapter_num = chapter.get("chapter_number")
+
+            # Update novel metadata
+            novel.novel_title = chapter.get("novel_title", "")
+            novel.novel_description = chapter.get("novel_description", "")
+
+            # Start new chunk
+            if (
+                int(chapter_num) % novel.output_chapter_range
+                == novel.start_range_modulo
+            ):
+                novel.current_chapter_number = chapter_num
+
+            novel.add_chapter_content(chapter)
+
+            # Write chunk if needed
+            last_chapter = chapter.get("chapter_start_end").split("/")[1]
+            if novel.should_write_chunk(chapter_num, last_chapter):
+                range_text, prefix = processor.process_chapter_range(
+                    novel.current_chapter_number, chapter_num, novel
+                )
+
+                novel.write_chunk_to_file(prefix + novel.main_text, range_text)
+                novel.main_text = ""
+
+
+@app.command()
+def unpack2(
+    directory: str = typer.Argument(
+        default="storage_jl",
+        help="Input directory storage for raw jsonl files",
+        exists=True,
+        file_okay=True,
+    ),
+    length: int = typer.Option(
+        10, "--length", "-l", help="chapter text length to unpack jsonl file into"
+    ),
+):
+    """Unpack the JSONL file into a text file."""
+    home_user = os.path.expanduser("~")
+    storage_directory_path = os.path.normpath(os.path.join(home_user, directory))
+    typer.echo(f"Processing directory: {storage_directory_path}")
+
+    if not os.path.exists(storage_directory_path):
+        typer.echo(f"Directory not found at path: {storage_directory_path}")
+        raise typer.Exit(1)
+
+    jsonl_files = find_jsonl_files(storage_directory_path)
+
+    # typer.echo(
+    #     f"Unpacking jsonl files in {directory} into text file with chapter length {length}"
+    # )
+    if jsonl_files:  # Check if list is not empty
+        file = jsonl_files[0]  # Get first file only
+        directory_path = os.path.dirname(file)
+        # typer.echo(f"directory_path: {directory_path}")
+        typer.echo(f"Unpacking: {file}")
+        read_jsonl_file2(file, directory_path, length)
 
 
 @app.command()

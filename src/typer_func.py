@@ -2,7 +2,11 @@ import os
 import asyncio
 import glob
 import json
+import jsonlines
 from googletrans import Translator
+from typing import Optional, List
+from novel_package import NovelPackage
+from processor import ChapterProcessor
 
 
 async def translate_to_eng(text: str, lang: str = "ja"):
@@ -81,6 +85,49 @@ def translate_file_title(file: str):
         novel_title = data.get("novel_title", "")
 
     return translate_safe_title(novel_title)
+
+
+def read_jsonl_file_test(
+    file: str,
+    directory_path: str,
+    output_chapter_range: int = 10,
+    start_chapter: Optional[int] = None,
+):
+    """Process JSONL file and write chapter chunks"""
+    novel = NovelPackage(
+        file=file,
+        directory_path=directory_path,
+        output_chapter_range=output_chapter_range,
+        start_chapter=start_chapter,
+    )
+
+    processor = ChapterProcessor()
+
+    with jsonlines.open(file, "r") as reader:
+        for chapter in reader.iter(type=dict, skip_invalid=True):
+            if processor.check_skip_chapter(chapter):
+                continue
+
+            chapter_num = chapter.get("chapter_number")
+
+            # Start new chunk
+            if (
+                int(chapter_num) % novel.output_chapter_range
+                == novel.start_range_modulo
+            ):
+                novel.current_chapter_number = chapter_num
+
+            novel.add_chapter_content(chapter)
+
+            # Write chunk if needed
+            last_chapter = chapter.get("chapter_start_end").split("/")[1]
+            if novel.should_write_chunk(chapter_num, last_chapter):
+                range_text, prefix = processor.process_chapter_range(
+                    novel.current_chapter_number, chapter_num, novel
+                )
+
+                write_chunk_to_file(novel, prefix + novel.main_text, range_text)
+                novel.main_text = ""
 
 
 if __name__ == "__main__":
