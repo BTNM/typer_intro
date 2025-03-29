@@ -13,8 +13,8 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from typer_func import (
     find_jsonl_files,
     get_new_directory,
-    read_jsonl_file1,
-    read_jsonl_file_old,
+    process_jsonl_file1,
+    process_jsonl_file_old,
     translate_file_title,
     translate_safe_title,
 )
@@ -78,7 +78,7 @@ def unpack_old(
         directory_path = os.path.dirname(file)
         # typer.echo(f"directory_path: {directory_path}")
         typer.echo(f"Unpacking: {file}")
-        read_jsonl_file_old(file, directory_path, length)
+        process_jsonl_file_old(file, directory_path, length)
 
 
 @app.command()
@@ -112,7 +112,7 @@ def unpack1(
         directory_path = os.path.dirname(file)
         # typer.echo(f"directory_path: {directory_path}")
         typer.echo(f"Unpacking path: {directory_path}, file: {file}")
-        read_jsonl_file1(file, directory_path, length)
+        process_jsonl_file1(file, directory_path, length)
 
 
 @app.command()

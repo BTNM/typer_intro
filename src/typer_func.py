@@ -178,7 +178,7 @@ def output_text_to_file(file_path: str, chapter_text: str):
         text_file.write(chapter_text)
 
 
-def read_jsonl_file_old(
+def process_jsonl_file_old(
     file: str,
     directory_path: str,
     output_chapter_range: int = 10,
@@ -256,7 +256,7 @@ def read_jsonl_file_old(
                 main_text = ""
 
 
-def read_jsonl_file1(
+def process_jsonl_file1(
     file: str,
     directory_path: str,
     output_chapter_range: int = 10,
@@ -272,7 +272,15 @@ def read_jsonl_file1(
 
     processor = ChapterProcessor()
 
+    # Get novel title from first chapter
     with jsonlines.open(file, "r") as reader:
+        # first_chapter = next(reader.iter(type=dict, skip_invalid=True))
+        # novel_title = translate_safe_title(first_chapter.get("novel_title", ""))
+
+        # # Create novel-specific directory
+        # novel_dir = os.path.join(directory_path, novel_title)
+        # os.makedirs(novel_dir, exist_ok=True)
+
         for chapter in reader.iter(type=dict, skip_invalid=True):
             if processor.check_skip_chapter(chapter):
                 continue
@@ -299,5 +307,7 @@ def read_jsonl_file1(
                     novel.current_chapter_number, chapter_num, novel
                 )
 
+                # Use novel-specific directory for output
+                # novel.output_directory = novel_dir
                 novel.write_chunk_to_file(prefix + novel.main_text, range_text)
                 novel.main_text = ""
