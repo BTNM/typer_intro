@@ -1,6 +1,7 @@
 import os
 from dataclasses import dataclass, field
 from typing import Optional, List
+from utils_translate import translate_safe_title, translate_title
 
 
 @dataclass
@@ -53,11 +54,16 @@ class NovelPackage:
         # Create output directory if needed
         os.makedirs(output_text_directory, exist_ok=True)
 
+        english_title = translate_title(self.novel_title)
+        # Create a novel-specific directory using the novel title
+        novel_directory = os.path.join(output_text_directory, english_title)
+        os.makedirs(novel_directory, exist_ok=True)
+
         # Create filename with chapter range and truncated novel title
         filename = f"{range_text} {self.novel_title[:30]}.txt"
 
         # Create full output path
-        file_path = os.path.join(output_text_directory, filename)
+        file_path = os.path.join(novel_directory, filename)
 
         # Write content to file
         with open(file_path, "w", encoding="utf-8") as f:

@@ -7,6 +7,8 @@ import typer
 from typing import Optional
 from enum import Enum
 
+from utils_translate import translate_file_title, translate_safe_title
+
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -15,8 +17,6 @@ from typer_func import (
     get_new_directory,
     process_jsonl_file1,
     process_jsonl_file_old,
-    translate_file_title,
-    translate_safe_title,
 )
 
 
