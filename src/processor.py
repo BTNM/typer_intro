@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from doctest import SKIP
 from typing import List, Tuple
 
-from novel_package import NovelPackage
+from novel_package import NovelPackage, Chapter
 
 SKIP_TITLES_LIST = ["人物紹介", "登場人物"]
 
@@ -11,10 +11,10 @@ SKIP_TITLES_LIST = ["人物紹介", "登場人物"]
 class ChapterProcessor:
     skip_titles: List[str] = field(default_factory=lambda: SKIP_TITLES_LIST)
 
-    def check_skip_chapter(self, chapter: dict) -> bool:
-        """Check if chapter should be skipped based on title"""
+    def check_skip_chapter(self, chapter_data: dict) -> bool:
+        """Check if chapter should be skipped based on title."""
         for title in self.skip_titles:
-            if title in chapter.get("chapter_title", ""):
+            if title in chapter_data.get("chapter_title", ""):
                 return True
         return False
 

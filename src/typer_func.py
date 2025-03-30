@@ -2,7 +2,7 @@ import os
 import glob
 import jsonlines
 from typing import Optional
-from novel_package import NovelPackage
+from novel_package import NovelPackage, Chapter
 from processor import ChapterProcessor
 
 
@@ -205,7 +205,7 @@ def process_jsonl_file1(
     output_chapter_range: int = 10,
     start_chapter: Optional[int] = None,
 ):
-    """Process JSONL file and write chapter chunks"""
+    """Process JSONL file and write chapter chunks."""
     novel = NovelPackage(
         file=file,
         directory_path=directory_path,
@@ -213,45 +213,50 @@ def process_jsonl_file1(
         start_chapter=start_chapter,
     )
 
-    processor = ChapterProcessor()
+    chapter_processor = ChapterProcessor()
 
     # Get novel title and last chapter from the first chapter
     with jsonlines.open(file, "r") as reader:
-        # first_chapter = next(reader.iter(type=dict, skip_invalid=True))
-        # novel_title = translate_safe_title(first_chapter.get("novel_title", ""))
-        # novel.last_chapter = int(first_chapter.get("chapter_start_end").split("/")[1])
-
-        # # Create novel-specific directory
-        # novel_dir = os.path.join(directory_path, novel_title)
-        # os.makedirs(novel_dir, exist_ok=True)
-
-        for chapter in reader.iter(type=dict):
-            novel.last_chapter = int(chapter.get("chapter_start_end").split("/")[1])
-            if processor.check_skip_chapter(chapter):
+        for chapter_data in reader.iter(type=dict):
+            novel.last_chapter = int(
+                chapter_data.get("chapter_start_end").split("/")[1]
+            )
+            if chapter_processor.check_skip_chapter(chapter_data):
                 continue
 
-            chapter_num = chapter.get("chapter_number")
+            # Create Chapter instance
+            chapter = Chapter(
+                chapter_number=int(chapter_data.get("chapter_number")),
+                volume_title=chapter_data.get("volume_title"),
+                chapter_title=chapter_data.get("chapter_title"),
+                chapter_foreword=chapter_data.get("chapter_foreword"),
+                chapter_text=chapter_data.get("chapter_text"),
+                chapter_afterword=chapter_data.get("chapter_afterword"),
+            )
 
             # Update novel metadata
-            novel.novel_title = chapter.get("novel_title", "")
-            novel.novel_description = chapter.get("novel_description", "")
+            novel.novel_title = chapter_data.get("novel_title", "")
+            novel.novel_description = chapter_data.get("novel_description", "")
+
+            # Add chapter to novel
+            novel.add_chapter(chapter)
 
             # Start new chunk
             if (
-                int(chapter_num) % novel.output_chapter_range
+                int(chapter.chapter_number) % novel.output_chapter_range
                 == novel.start_range_modulo
             ):
-                novel.current_chapter_number = chapter_num
-
-            novel.add_chapter_content(chapter)
+                novel.current_chapter_number = chapter.chapter_number
 
             # Write chunk if needed
-            if novel.should_write_chunk(chapter_num):
-                chapter_range_text, prefix = processor.add_chapter_prefix_range_text(
-                    novel.current_chapter_number, chapter_num, novel
+            if novel.should_write_chunk(chapter.chapter_number):
+                chapter_range_text, prefix = (
+                    chapter_processor.add_chapter_prefix_range_text(
+                        novel.current_chapter_number, chapter.chapter_number, novel
+                    )
                 )
-
-                # Use novel-specific directory for output
-                # novel.output_directory = novel_dir
-                novel.write_chunk_to_file(prefix + novel.main_text, chapter_range_text)
-                novel.main_text = ""
+                novel.write_chunk_to_file(
+                    prefix + novel.get_novel_text(),
+                    chapter_range_text,
+                )
+                novel.chapters.clear()
