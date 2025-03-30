@@ -242,21 +242,15 @@ def process_jsonl_file1(
             novel.add_chapter(chapter)
 
             # Start new chunk
-            if (
-                int(chapter.chapter_number) % novel.output_chapter_range
-                == novel.start_range_modulo
-            ):
-                novel.current_chapter_number = chapter.chapter_number
+            novel.start_new_chunk(chapter.chapter_number)
 
             # Write chunk if needed
             if novel.should_write_chunk(chapter.chapter_number):
-                chapter_range_text, prefix = (
-                    chapter_processor.add_chapter_prefix_range_text(
-                        novel.current_chapter_number, chapter.chapter_number, novel
-                    )
+                chapter_range_text, prefix = novel.add_chapter_prefix_range_text(
+                    novel.current_chapter_number, chapter.chapter_number
                 )
                 novel.write_chunk_to_file(
-                    prefix + novel.get_novel_text(),
-                    chapter_range_text,
+                    text_content=prefix + novel.get_novel_text(),
+                    range_text=chapter_range_text,
                 )
                 novel.chapters.clear()

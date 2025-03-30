@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass, field
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from utils_translate import translate_safe_title, translate_title
 
 
@@ -52,12 +52,28 @@ class NovelPackage:
         novel_text = "".join(chapter.get_chapter_text() for chapter in self.chapters)
         return novel_text
 
+    def start_new_chunk(self, chapter_number: int) -> None:
+        """Start a new chunk if the chapter number matches the start range modulo."""
+        if int(chapter_number) % self.output_chapter_range == self.start_range_modulo:
+            self.current_chapter_number = chapter_number
+
     def should_write_chunk(self, chapter_number: int) -> bool:
         """Check if current chunk should be written to file."""
         return (
             int(chapter_number) % self.output_chapter_range == self.end_range_modulo
             or chapter_number == self.last_chapter
         )
+
+    def add_chapter_prefix_range_text(self, start: int, end: int) -> Tuple[str, str]:
+        """Process a range of chapters and return filename components"""
+        chapter_range_text = f"{start}-{end}"
+        if int(start) <= self.output_chapter_range:
+            prefix = (
+                f"{chapter_range_text} {self.novel_title}\n{self.novel_description}\n"
+            )
+        else:
+            prefix = f"{chapter_range_text} "
+        return chapter_range_text, prefix
 
     def write_chunk_to_file(self, text_content: str, range_text: str) -> None:
         """Write a chunk of text to file with appropriate naming and directory structure.
