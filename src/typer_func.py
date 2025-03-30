@@ -272,16 +272,18 @@ def process_jsonl_file1(
 
     processor = ChapterProcessor()
 
-    # Get novel title from first chapter
+    # Get novel title and last chapter from the first chapter
     with jsonlines.open(file, "r") as reader:
         # first_chapter = next(reader.iter(type=dict, skip_invalid=True))
         # novel_title = translate_safe_title(first_chapter.get("novel_title", ""))
+        # novel.last_chapter = int(first_chapter.get("chapter_start_end").split("/")[1])
 
         # # Create novel-specific directory
         # novel_dir = os.path.join(directory_path, novel_title)
         # os.makedirs(novel_dir, exist_ok=True)
 
-        for chapter in reader.iter(type=dict, skip_invalid=True):
+        for chapter in reader.iter(type=dict):
+            novel.last_chapter = int(chapter.get("chapter_start_end").split("/")[1])
             if processor.check_skip_chapter(chapter):
                 continue
 
@@ -301,13 +303,12 @@ def process_jsonl_file1(
             novel.add_chapter_content(chapter)
 
             # Write chunk if needed
-            last_chapter = chapter.get("chapter_start_end").split("/")[1]
-            if novel.should_write_chunk(chapter_num, last_chapter):
-                range_text, prefix = processor.process_chapter_range(
+            if novel.should_write_chunk(chapter_num):
+                chapter_range_text, prefix = processor.add_chapter_prefix_range_text(
                     novel.current_chapter_number, chapter_num, novel
                 )
 
                 # Use novel-specific directory for output
                 # novel.output_directory = novel_dir
-                novel.write_chunk_to_file(prefix + novel.main_text, range_text)
+                novel.write_chunk_to_file(prefix + novel.main_text, chapter_range_text)
                 novel.main_text = ""

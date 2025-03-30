@@ -16,6 +16,7 @@ class NovelPackage:
     novel_description: str = ""
     chapters: List[dict] = field(default_factory=list)
     current_chapter_number: int = 0
+    last_chapter: int = 0
 
     def add_chapter_content(self, chapter: dict) -> None:
         """Add chapter content to main text"""
@@ -29,11 +30,11 @@ class NovelPackage:
         if chapter.get("chapter_afterword"):
             self.main_text += chapter.get("chapter_afterword") + "\n"
 
-    def should_write_chunk(self, chapter_number: int, last_chapter: int) -> bool:
+    def should_write_chunk(self, chapter_number: int) -> bool:
         """Check if current chunk should be written to file"""
         return (
             int(chapter_number) % self.output_chapter_range == self.end_range_modulo
-            or chapter_number == last_chapter
+            or chapter_number == self.last_chapter
         )
 
     def write_chunk_to_file(self, text_content: str, range_text: str) -> None:

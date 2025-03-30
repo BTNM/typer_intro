@@ -18,13 +18,13 @@ class ChapterProcessor:
                 return True
         return False
 
-    def process_chapter_range(
+    def add_chapter_prefix_range_text(
         self, start: int, end: int, novel_package: NovelPackage
     ) -> Tuple[str, str]:
         """Process a range of chapters and return filename components"""
-        range_text = f"{start}-{end}"
+        chapter_range_text = f"{start}-{end}"
         if int(start) <= novel_package.output_chapter_range:
-            prefix = f"{range_text} {novel_package.novel_title}\n{novel_package.novel_description}\n"
+            prefix = f"{chapter_range_text} {novel_package.novel_title}\n{novel_package.novel_description}\n"
         else:
-            prefix = f"{range_text} "
-        return range_text, prefix
+            prefix = f"{chapter_range_text} "
+        return chapter_range_text, prefix
