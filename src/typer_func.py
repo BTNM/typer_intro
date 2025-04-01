@@ -3,11 +3,15 @@ import glob
 import jsonlines
 from typing import Optional
 from novel_package import NovelPackage, Chapter
-from processor import ChapterProcessor
 
 
 def find_jsonl_files(directory: str):
-    """Find all .jl files recursively in the given directory."""
+    """Find all jl files recursively in the given directory.
+    Args:
+        directory (str): The directory to search for JSONL files.
+    Returns:
+        list: A list of paths to JSONL files.
+    """
     return glob.glob(os.path.join(directory, "**", "*.jl"), recursive=True)
 
 
@@ -200,29 +204,25 @@ def process_jsonl_file_old(
 
 
 def process_jsonl_file1(
-    file: str,
+    filepath_jl: str,
     directory_path: str,
-    output_chapter_range: int = 10,
-    start_chapter: Optional[int] = None,
+    output_chapter_length: int = 10,
+    start_at_chapter: Optional[int] = None,
 ):
     """Process JSONL file and write chapter chunks."""
     novel = NovelPackage(
-        file=file,
+        filepath_jl=filepath_jl,
         directory_path=directory_path,
-        output_chapter_range=output_chapter_range,
-        start_chapter=start_chapter,
+        output_chapter_length=output_chapter_length,
+        start_at_chapter=start_at_chapter,
     )
 
-    chapter_processor = ChapterProcessor()
-
     # Get novel title and last chapter from the first chapter
-    with jsonlines.open(file, "r") as reader:
+    with jsonlines.open(filepath_jl, "r") as reader:
         for chapter_data in reader.iter(type=dict):
-            novel.last_chapter = int(
+            novel.lastest_chapter = int(
                 chapter_data.get("chapter_start_end").split("/")[1]
             )
-            if chapter_processor.check_skip_chapter(chapter_data):
-                continue
 
             # Create Chapter instance
             chapter = Chapter(
@@ -234,15 +234,17 @@ def process_jsonl_file1(
                 chapter_afterword=chapter_data.get("chapter_afterword"),
             )
 
+            if chapter.check_skip_chapter():
+                continue
+
             # Update novel metadata
             novel.novel_title = chapter_data.get("novel_title", "")
             novel.novel_description = chapter_data.get("novel_description", "")
-
             # Add chapter to novel
             novel.add_chapter(chapter)
 
-            # Start new chunk
-            novel.start_new_chunk(chapter.chapter_number)
+            # Check if start new chunk
+            novel.check_start_new_chunk(chapter.chapter_number)
 
             # Write chunk if needed
             if novel.should_write_chunk(chapter.chapter_number):

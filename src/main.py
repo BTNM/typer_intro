@@ -109,6 +109,7 @@ def unpack1(
     # )
     if jsonl_files:  # Check if list is not empty
         file = jsonl_files[0]  # Get first file only
+        # for file in jsonl_files:
         directory_path = os.path.dirname(file)
         # typer.echo(f"directory_path: {directory_path}")
         typer.echo(f"Unpacking path: {directory_path}, file: {file}")

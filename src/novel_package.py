@@ -4,6 +4,9 @@ from typing import Optional, List, Tuple
 from utils_translate import translate_safe_title, translate_title
 
 
+SKIP_TITLES_LIST = ["人物紹介", "登場人物"]
+
+
 @dataclass
 class Chapter:
     chapter_number: int
@@ -12,6 +15,7 @@ class Chapter:
     chapter_foreword: Optional[str] = None
     chapter_text: Optional[str] = None
     chapter_afterword: Optional[str] = None
+    skip_title_list: list[str] = field(default_factory=lambda: SKIP_TITLES_LIST)
 
     def get_chapter_text(self) -> str:
         """Combine all chapter content into a single string."""
@@ -28,20 +32,27 @@ class Chapter:
             text += self.chapter_afterword + "\n"
         return text
 
+    def check_skip_chapter(self) -> bool:
+        """Check if the chapter should be skipped based on its title."""
+        for title in self.skip_title_list:
+            if title == self.chapter_title:
+                return True
+        return False
+
 
 @dataclass
 class NovelPackage:
-    file: str
+    filepath_jl: str
     directory_path: str
-    output_chapter_range: int
-    start_chapter: Optional[int] = None
-    start_range_modulo: int = 1
-    end_range_modulo: int = 0
     novel_title: str = ""
     novel_description: str = ""
-    chapters: List[Chapter] = field(default_factory=list)
+    output_chapter_length: int = 10
+    start_at_chapter: Optional[int] = None
+    lastest_chapter: int = 0
     current_chapter_number: int = 0
-    last_chapter: int = 0
+    chapters: List[Chapter] = field(default_factory=list)
+    start_range_modulo: int = 1
+    end_range_modulo: int = 0
 
     def add_chapter(self, chapter: Chapter) -> None:
         """Add a chapter to the novel."""
@@ -52,22 +63,22 @@ class NovelPackage:
         novel_text = "".join(chapter.get_chapter_text() for chapter in self.chapters)
         return novel_text
 
-    def start_new_chunk(self, chapter_number: int) -> None:
+    def check_start_new_chunk(self, chapter_number: int) -> None:
         """Start a new chunk if the chapter number matches the start range modulo."""
-        if int(chapter_number) % self.output_chapter_range == self.start_range_modulo:
+        if int(chapter_number) % self.output_chapter_length == self.start_range_modulo:
             self.current_chapter_number = chapter_number
 
     def should_write_chunk(self, chapter_number: int) -> bool:
         """Check if current chunk should be written to file."""
         return (
-            int(chapter_number) % self.output_chapter_range == self.end_range_modulo
-            or chapter_number == self.last_chapter
+            int(chapter_number) % self.output_chapter_length == self.end_range_modulo
+            or chapter_number == self.lastest_chapter
         )
 
     def add_chapter_prefix_range_text(self, start: int, end: int) -> Tuple[str, str]:
         """Process a range of chapters and return filename components"""
         chapter_range_text = f"{start}-{end}"
-        if int(start) <= self.output_chapter_range:
+        if int(start) <= self.output_chapter_length:
             prefix = (
                 f"{chapter_range_text} {self.novel_title}\n{self.novel_description}\n"
             )
@@ -83,9 +94,9 @@ class NovelPackage:
             range_text (str): Chapter range text for filename
         """
         # Get the base directory name and add _text suffix
-        base_dir = os.path.basename(os.path.dirname(self.file))
+        base_dir = os.path.basename(os.path.dirname(self.filepath_jl))
         output_text_directory = os.path.join(
-            os.path.dirname(os.path.dirname(self.file)), f"{base_dir}_text"
+            os.path.dirname(os.path.dirname(self.filepath_jl)), f"{base_dir}_text"
         )
 
         # Create output directory if needed
