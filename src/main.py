@@ -26,7 +26,7 @@ app = typer.Typer()
 @app.command()
 def list(
     directory: str = typer.Argument(
-        "../storage",  # default value
+        "storage_jl",  # default value
         help="Storage directory to process",  # help text
         exists=True,  # verify directory exists
         file_okay=False,  # must be directory, not file
@@ -36,9 +36,14 @@ def list(
         False, "--list", "-l", help="List files in more detail"
     ),
 ):
-    """List all files in the given directory (defaults to 'storage')."""
-    typer.echo(f"Listing files in {directory}...")
-    jsonl_files = glob.glob(os.path.join(directory, "**", "*.jl"), recursive=True)
+    """List all files in the given directory (defaults to 'storage_jl')."""
+    home_user = os.path.expanduser("~")
+    storage_directory_path = os.path.normpath(os.path.join(home_user, directory))
+
+    typer.echo(f"Listing files in {storage_directory_path}...")
+    jsonl_files = glob.glob(
+        os.path.join(storage_directory_path, "**", "*.jl"), recursive=True
+    )
     for file in jsonl_files:
         if list_mode:
             file_stats = os.stat(file)
@@ -108,12 +113,13 @@ def unpack1(
     #     f"Unpacking jsonl files in {directory} into text file with chapter length {length}"
     # )
     if jsonl_files:  # Check if list is not empty
-        file = jsonl_files[0]  # Get first file only
-        # for file in jsonl_files:
-        directory_path = os.path.dirname(file)
-        # typer.echo(f"directory_path: {directory_path}")
-        typer.echo(f"Unpacking path: {directory_path}, file: {file}")
-        process_jsonl_file1(file, directory_path, length)
+        # file = jsonl_files[0]  # Get first file only
+        for file in jsonl_files:
+            # for file in jsonl_files:
+            file_directory_path = os.path.dirname(file)
+            # typer.echo(f"directory_path: {file_directory_path}")
+            typer.echo(f"Unpacking file: {file}")
+            process_jsonl_file1(file, file_directory_path, length)
 
 
 @app.command()
@@ -128,15 +134,15 @@ def rename(
 ):
     """Rename JSON files directly using translated novel titles."""
     home_user = os.path.expanduser("~")
-    directory_path = os.path.normpath(os.path.join(home_user, directory))
-    typer.echo(f"Processing directory: {directory_path}")
+    storage_directory_path = os.path.normpath(os.path.join(home_user, directory))
+    typer.echo(f"Processing directory: {storage_directory_path}")
 
-    if not os.path.exists(directory_path):
-        typer.echo(f"Directory not found at path: {directory_path}")
+    if not os.path.exists(storage_directory_path):
+        typer.echo(f"Directory not found at path: {storage_directory_path}")
         raise typer.Exit(1)
 
     # os.makedirs(directory_path, exist_ok=True)
-    jsonl_files = find_jsonl_files(directory_path)
+    jsonl_files = find_jsonl_files(storage_directory_path)
 
     for file in jsonl_files:
         file_dir = os.path.dirname(file)
