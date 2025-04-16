@@ -34,8 +34,8 @@ class Chapter:
 
     def check_skip_chapter(self) -> bool:
         """Check if the chapter should be skipped based on its title."""
-        for title in self.skip_title_list:
-            if title == self.chapter_title:
+        for skip_title in self.skip_title_list:
+            if skip_title in self.chapter_title:
                 return True
         return False
 
@@ -62,6 +62,18 @@ class NovelPackage:
         """Combine all chapters into a single string."""
         novel_text = "".join(chapter.get_chapter_text() for chapter in self.chapters)
         return novel_text
+
+    def increase_chapter_modulo_rest_check(self):
+        """
+        Increase chapter modulo rest check variable, if rest is equal to output_chapter_length then reset back to 0 to get correct numbering
+        """
+        self.start_range_modulo += 1
+        self.end_range_modulo += 1
+        #
+        if self.start_range_modulo == self.output_chapter_length:
+            self.start_range_modulo = 0
+        if self.end_range_modulo == self.output_chapter_length:
+            self.end_range_modulo = 0
 
     def check_start_new_chunk(self, chapter_number: int) -> None:
         """Start a new chunk if the chapter number matches the start range modulo."""

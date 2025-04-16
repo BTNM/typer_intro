@@ -235,6 +235,13 @@ def process_jsonl_file1(
             )
 
             if chapter.check_skip_chapter():
+                # continue
+                if (
+                    int(chapter.chapter_number) % novel.output_chapter_length
+                    == novel.start_range_modulo
+                ):
+                    novel.increase_chapter_modulo_rest_check()
+                # continue to next loop on if
                 continue
 
             # Update novel metadata
