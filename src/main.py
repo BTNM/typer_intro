@@ -15,6 +15,7 @@ from typer_func import (
     process_jsonl_file,
 )
 
+HOME_USER = os.path.expanduser("~")
 
 app = typer.Typer()
 
@@ -33,8 +34,7 @@ def list(
     ),
 ):
     """List all files in the given directory (defaults to 'storage_jl')."""
-    home_user = os.path.expanduser("~")
-    storage_directory_path = os.path.normpath(os.path.join(home_user, directory))
+    storage_directory_path = os.path.normpath(os.path.join(HOME_USER, directory))
 
     typer.echo(f"Listing files in {storage_directory_path}...")
     jsonl_files = glob.glob(
@@ -49,7 +49,7 @@ def list(
 
 
 @app.command()
-def unpack1(
+def unpack(
     directory: str = typer.Argument(
         default="storage_jl",
         help="Input directory storage for raw jsonl files",
@@ -61,8 +61,7 @@ def unpack1(
     ),
 ):
     """Unpack the JSONL file into a text file."""
-    home_user = os.path.expanduser("~")
-    storage_directory_path = os.path.normpath(os.path.join(home_user, directory))
+    storage_directory_path = os.path.normpath(os.path.join(HOME_USER, directory))
     typer.echo(f"Processing directory: {storage_directory_path}")
 
     if not os.path.exists(storage_directory_path):
@@ -96,8 +95,7 @@ def rename(
     ),
 ):
     """Rename JSON files directly using translated novel titles."""
-    home_user = os.path.expanduser("~")
-    storage_directory_path = os.path.normpath(os.path.join(home_user, directory))
+    storage_directory_path = os.path.normpath(os.path.join(HOME_USER, directory))
     typer.echo(f"Processing directory: {storage_directory_path}")
 
     if not os.path.exists(storage_directory_path):
@@ -136,8 +134,7 @@ def copy_rename(
     """Rename and translate Japanese novel titles and organize them in new directories."""
     typer.echo("Renaming files...")
 
-    home_user = os.path.expanduser("~")
-    directory_path = os.path.normpath(os.path.join(home_user, directory))
+    directory_path = os.path.normpath(os.path.join(HOME_USER, directory))
     typer.echo(f"Processing directory: {directory_path}")
 
     if not os.path.exists(directory_path):
@@ -153,7 +150,7 @@ def copy_rename(
 
     for file in jsonl_files:
         storage_directory_path = get_new_directory(
-            file, home_user, directory_path, storage_directory_name
+            file, HOME_USER, directory_path, storage_directory_name
         )
         safe_title = translate_file_title(file)
 

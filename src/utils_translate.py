@@ -1,7 +1,6 @@
 import asyncio
 import json
 from googletrans import Translator
-from googletrans import Translator
 
 
 async def translate_to_eng(text: str, lang: str = "ja"):

@@ -18,18 +18,14 @@ class Chapter:
 
     def get_chapter_text(self) -> str:
         """Combine all chapter content into a single string."""
-        text = ""
-        if self.volume_title:
-            text += self.volume_title + "\n"
-        if self.chapter_title:
-            text += self.chapter_title + "\n"
-        if self.chapter_foreword:
-            text += self.chapter_foreword + "\n"
-        if self.chapter_text:
-            text += self.chapter_text + "\n"
-        if self.chapter_afterword:
-            text += self.chapter_afterword + "\n"
-        return text
+        chapter_parts = [
+            self.volume_title,
+            self.chapter_title,
+            self.chapter_foreword,
+            self.chapter_text,
+            self.chapter_afterword,
+        ]
+        return "\n".join(text_part for text_part in chapter_parts if text_part)
 
     def check_skip_chapter(self) -> bool:
         """Check if chapter should be skipped based on its title."""
