@@ -234,14 +234,9 @@ def process_jsonl_file1(
                 chapter_afterword=chapter_data.get("chapter_afterword"),
             )
 
+            # Handle chapter skipping with new logic
             if chapter.check_skip_chapter():
-                # continue
-                if (
-                    int(chapter.chapter_number) % novel.output_chapter_length
-                    == novel.start_range_modulo
-                ):
-                    novel.increase_chapter_modulo_rest_check()
-                # continue to next loop on if
+                novel.process_chunk_position(chapter.chapter_number)
                 continue
 
             # Update novel metadata

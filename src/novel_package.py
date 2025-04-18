@@ -3,8 +3,8 @@ from dataclasses import dataclass, field
 from typing import Optional, List, Tuple
 from utils_translate import translate_safe_title, translate_title
 
-
-SKIP_TITLES_LIST = ["人物紹介", "登場人物"]
+# Chapter skipping constants
+SKIP_TITLE_PATTERNS = ["人物紹介", "登場人物"]
 
 
 @dataclass
@@ -15,7 +15,6 @@ class Chapter:
     chapter_foreword: Optional[str] = None
     chapter_text: Optional[str] = None
     chapter_afterword: Optional[str] = None
-    skip_title_list: list[str] = field(default_factory=lambda: SKIP_TITLES_LIST)
 
     def get_chapter_text(self) -> str:
         """Combine all chapter content into a single string."""
@@ -33,11 +32,8 @@ class Chapter:
         return text
 
     def check_skip_chapter(self) -> bool:
-        """Check if the chapter should be skipped based on its title."""
-        for skip_title in self.skip_title_list:
-            if skip_title in self.chapter_title:
-                return True
-        return False
+        """Check if chapter should be skipped based on its title."""
+        return any(pattern in self.chapter_title for pattern in SKIP_TITLE_PATTERNS)
 
 
 @dataclass
@@ -51,8 +47,8 @@ class NovelPackage:
     lastest_chapter: int = 0
     current_chapter_number: int = 0
     chapters: List[Chapter] = field(default_factory=list)
-    start_range_modulo: int = 1
-    end_range_modulo: int = 0
+    chunk_start_chapter: int = 1
+    chunk_end_chapter: int = 0
 
     def add_chapter(self, chapter: Chapter) -> None:
         """Add a chapter to the novel."""
@@ -63,27 +59,35 @@ class NovelPackage:
         novel_text = "".join(chapter.get_chapter_text() for chapter in self.chapters)
         return novel_text
 
-    def increase_chapter_modulo_rest_check(self):
+    def process_chunk_position(self, chapter_number: int):
         """
-        Increase chapter modulo rest check variable, if rest is equal to output_chapter_length then reset back to 0 to get correct numbering
+        Process chapter chunk position and handle increment to increase start chapter position
         """
-        self.start_range_modulo += 1
-        self.end_range_modulo += 1
-        #
-        if self.start_range_modulo == self.output_chapter_length:
-            self.start_range_modulo = 0
-        if self.end_range_modulo == self.output_chapter_length:
-            self.end_range_modulo = 0
+        # Check if chapter number matches the starting position in chunk pattern
+        increase_chunk_chapter_position = (
+            int(chapter_number) % self.output_chapter_length == self.chunk_start_chapter
+        )
+
+        if increase_chunk_chapter_position:
+            # Increment chunk values to increase start chapter position
+            self.chunk_start_chapter += 1
+            self.chunk_end_chapter += 1
+
+            # Reset if we reach output_chapter_length
+            if self.chunk_start_chapter == self.output_chapter_length:
+                self.chunk_start_chapter = 0
+            if self.chunk_end_chapter == self.output_chapter_length:
+                self.chunk_end_chapter = 0
 
     def check_start_new_chunk(self, chapter_number: int) -> None:
-        """Start a new chunk if the chapter number matches the start range modulo."""
-        if int(chapter_number) % self.output_chapter_length == self.start_range_modulo:
+        """Start a new chunk if the chapter number matches the chunk start chapter."""
+        if int(chapter_number) % self.output_chapter_length == self.chunk_start_chapter:
             self.current_chapter_number = chapter_number
 
     def should_write_chunk(self, chapter_number: int) -> bool:
         """Check if current chunk should be written to file."""
         return (
-            int(chapter_number) % self.output_chapter_length == self.end_range_modulo
+            int(chapter_number) % self.output_chapter_length == self.chunk_end_chapter
             or chapter_number == self.lastest_chapter
         )
 
