@@ -5,18 +5,14 @@ import shutil
 import json
 import typer
 from typing import Optional
-from enum import Enum
-
-from utils_translate import translate_file_title, translate_safe_title
-
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+from utils_translate import translate_file_title
 from typer_func import (
-    find_jsonl_files,
     get_new_directory,
-    process_jsonl_file1,
-    process_jsonl_file_old,
+    find_jsonl_files,
+    process_jsonl_file,
 )
 
 
@@ -53,40 +49,6 @@ def list(
 
 
 @app.command()
-def unpack_old(
-    directory: str = typer.Argument(
-        default="storage_jl",
-        help="Input directory storage for raw jsonl files",
-        exists=True,
-        file_okay=True,
-    ),
-    length: int = typer.Option(
-        10, "--length", "-l", help="chapter text length to unpack jsonl file into"
-    ),
-):
-    """Unpack the JSONL file into a text file."""
-    home_user = os.path.expanduser("~")
-    storage_directory_path = os.path.normpath(os.path.join(home_user, directory))
-    typer.echo(f"Processing directory: {storage_directory_path}")
-
-    if not os.path.exists(storage_directory_path):
-        typer.echo(f"Directory not found at path: {storage_directory_path}")
-        raise typer.Exit(1)
-
-    jsonl_files = find_jsonl_files(storage_directory_path)
-
-    # typer.echo(
-    #     f"Unpacking jsonl files in {directory} into text file with chapter length {length}"
-    # )
-    if jsonl_files:  # Check if list is not empty
-        file = jsonl_files[0]  # Get first file only
-        directory_path = os.path.dirname(file)
-        # typer.echo(f"directory_path: {directory_path}")
-        typer.echo(f"Unpacking: {file}")
-        process_jsonl_file_old(file, directory_path, length)
-
-
-@app.command()
 def unpack1(
     directory: str = typer.Argument(
         default="storage_jl",
@@ -119,7 +81,8 @@ def unpack1(
             file_directory_path = os.path.dirname(file)
             # typer.echo(f"directory_path: {file_directory_path}")
             typer.echo(f"Unpacking file: {file}")
-            process_jsonl_file1(file, file_directory_path, length)
+            # process_jsonl_file_old(file, directory_path, length)
+            process_jsonl_file(file, file_directory_path, length)
 
 
 @app.command()

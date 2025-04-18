@@ -59,6 +59,13 @@ class NovelPackage:
         novel_text = "".join(chapter.get_chapter_text() for chapter in self.chapters)
         return novel_text
 
+    def check_reset_chunk_positions(self):
+        """Reset chunk position counters if they reach output chapter length."""
+        if self.chunk_start_chapter == self.output_chapter_length:
+            self.chunk_start_chapter = 0
+        if self.chunk_end_chapter == self.output_chapter_length:
+            self.chunk_end_chapter = 0
+
     def process_chunk_position(self, chapter_number: int):
         """
         Process chapter chunk position and handle increment to increase start chapter position
@@ -73,11 +80,7 @@ class NovelPackage:
             self.chunk_start_chapter += 1
             self.chunk_end_chapter += 1
 
-            # Reset if we reach output_chapter_length
-            if self.chunk_start_chapter == self.output_chapter_length:
-                self.chunk_start_chapter = 0
-            if self.chunk_end_chapter == self.output_chapter_length:
-                self.chunk_end_chapter = 0
+            self.check_reset_chunk_positions()
 
     def check_start_new_chunk(self, chapter_number: int) -> None:
         """Start a new chunk if the chapter number matches the chunk start chapter."""
