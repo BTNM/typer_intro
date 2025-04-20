@@ -33,7 +33,7 @@ def list(
         False, "--list", "-l", help="List files in more detail"
     ),
 ):
-    """List all files in the given directory (defaults to 'storage_jl')."""
+    """List all files in the home user given directory (defaults to 'storage_jl')."""
     storage_directory_path = os.path.normpath(os.path.join(HOME_USER, directory))
 
     typer.echo(f"Listing files in {storage_directory_path}...")

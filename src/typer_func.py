@@ -51,11 +51,6 @@ def process_jsonl_file(
     # Get novel title and last chapter from the first chapter
     with jsonlines.open(filepath_jl, "r") as reader:
         for chapter_data in reader.iter(type=dict):
-            novel.lastest_chapter = int(
-                chapter_data.get("chapter_start_end").split("/")[1]
-            )
-
-            # Create Chapter instance
             chapter = Chapter(
                 chapter_number=int(chapter_data.get("chapter_number")),
                 volume_title=chapter_data.get("volume_title"),
@@ -71,9 +66,11 @@ def process_jsonl_file(
                 continue
 
             # Update novel metadata
+            novel.lastest_chapter = int(
+                chapter_data.get("chapter_start_end").split("/")[1]
+            )
             novel.novel_title = chapter_data.get("novel_title", "")
             novel.novel_description = chapter_data.get("novel_description", "")
-            # Add chapter to novel
             novel.add_chapter(chapter)
 
             # Check if start new chunk
@@ -81,11 +78,11 @@ def process_jsonl_file(
 
             # Write chunk if needed
             if novel.should_write_chunk(chapter.chapter_number):
-                chapter_range_text, prefix = novel.add_chapter_prefix_range_text(
+                chapter_start_end, prefix = novel.add_chapter_prefix_start_end(
                     novel.current_chapter_number, chapter.chapter_number
                 )
                 novel.write_chunk_to_file(
                     text_content=prefix + novel.get_novel_text(),
-                    range_text=chapter_range_text,
+                    chapter_start_end=chapter_start_end,
                 )
                 novel.chapters.clear()

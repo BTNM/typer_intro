@@ -90,23 +90,23 @@ class NovelPackage:
             or chapter_number == self.lastest_chapter
         )
 
-    def add_chapter_prefix_range_text(self, start: int, end: int) -> Tuple[str, str]:
+    def add_chapter_prefix_start_end(self, start: int, end: int) -> Tuple[str, str]:
         """Process a range of chapters and return filename components"""
-        chapter_range_text = f"{start}-{end}"
+        chapter_start_end = f"{start}-{end}"
         if int(start) <= self.output_chapter_length:
             prefix = (
-                f"{chapter_range_text} {self.novel_title}\n{self.novel_description}\n"
+                f"{chapter_start_end} {self.novel_title}\n{self.novel_description}\n"
             )
         else:
-            prefix = f"{chapter_range_text} "
-        return chapter_range_text, prefix
+            prefix = f"{chapter_start_end} "
+        return chapter_start_end, prefix
 
-    def write_chunk_to_file(self, text_content: str, range_text: str) -> None:
+    def write_chunk_to_file(self, text_content: str, chapter_start_end: str) -> None:
         """Write a chunk of text to file with appropriate naming and directory structure.
 
         Args:
             text_content (str): The processed text content to write
-            range_text (str): Chapter range text for filename
+            chapter_start_end (str): Chapter range text for filename
         """
         # Get the base directory name and add _text suffix
         base_dir = os.path.basename(os.path.dirname(self.filepath_jl))
@@ -123,7 +123,7 @@ class NovelPackage:
         os.makedirs(novel_directory, exist_ok=True)
 
         # Create filename with chapter range and truncated novel title
-        filename = f"{range_text} {self.novel_title[:30]}.txt"
+        filename = f"{chapter_start_end} {self.novel_title[:30]}.txt"
 
         # Create full output path
         file_path = os.path.join(novel_directory, filename)
