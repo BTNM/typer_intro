@@ -2,12 +2,14 @@ import os
 import sys
 import glob
 import shutil
-import json
 import typer
-from typing import Optional
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+from scrapy.crawler import CrawlerProcess
+from scrapy.utils.project import get_project_settings
+from syosetu_spider.spiders.syosetu_spider import SyosetuSpider
+from syosetu_spider.spiders.nocturne_spider import NocturneSpider
 from utils_translate import translate_file_title
 from typer_func import (
     get_new_directory,
@@ -166,6 +168,48 @@ def copy_rename(
                 typer.echo(f"File exists, skipping: {new_file}")
         else:
             typer.echo(f"Translation failed for: {file}")
+
+
+@app.command()
+def syosetu_spider(
+    url: str = typer.Argument(
+        "https://ncode.syosetu.com/n4750dy/",
+        help="Specify syosetu novel URL to crawl",
+        exists=True,
+        dir_okay=False,
+    ),
+    start_chapter: int = typer.Option(
+        None,
+        "--start-chapter",
+        "-sc",
+        help="Specify the novel crawl starting chapter number",
+    ),
+):
+    """Crawl the specified Syosetu novel URL and save as JSONL file"""
+    process = CrawlerProcess(get_project_settings())
+    process.crawl(SyosetuSpider, start_urls=url, start_chapter=start_chapter)
+    process.start()
+
+
+@app.command()
+def nocturne_spider(
+    url: str = typer.Argument(
+        "https://novel18.syosetu.com/n0153ce/",
+        help="Specify nocturne novel URL to crawl",
+        exists=True,
+        dir_okay=False,
+    ),
+    start_chapter: int = typer.Option(
+        None,
+        "--start-chapter",
+        "-sc",
+        help="Specify the novel crawl starting chapter number",
+    ),
+):
+    """Crawl the specified Nocturne novel URL and save as JSONL file"""
+    process = CrawlerProcess(get_project_settings())
+    process.crawl(NocturneSpider, start_urls=url, start_chapter=start_chapter)
+    process.start()
 
 
 if __name__ == "__main__":
