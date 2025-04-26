@@ -2,12 +2,15 @@ import sys
 import scrapy
 import logging
 import time
+import os
 
 sys.path.append("../../..")
 
 from bs4 import BeautifulSoup
 from syosetu_spider.items import NovelItem
 from datetime import datetime
+
+HOME_USER = os.path.expanduser("~")
 
 
 class SyosetuSpider(scrapy.Spider):
@@ -18,7 +21,8 @@ class SyosetuSpider(scrapy.Spider):
     custom_settings = {
         "LOG_LEVEL": "INFO",
         "FEEDS": {
-            f"{name}_{current_dt}.jl": {
+            #     f"{name}_{current_dt}.jsonl": {
+            os.path.join(HOME_USER, "storage_jl", f"{name}_{current_dt}.jsonl"): {
                 "format": "jsonlines",
                 "encoding": "utf8",
                 "store_empty": False,

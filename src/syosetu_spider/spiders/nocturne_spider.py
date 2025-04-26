@@ -2,6 +2,7 @@ import sys
 import scrapy
 import time
 import logging
+import os
 from bs4 import BeautifulSoup
 
 sys.path.append("../../..")
@@ -11,6 +12,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from urllib.parse import urljoin
 from datetime import datetime
+
+HOME_USER = os.path.expanduser("~")
 
 
 class NocturneSpider(scrapy.Spider):
@@ -29,7 +32,8 @@ class NocturneSpider(scrapy.Spider):
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
         },
         "FEEDS": {
-            f"{name}_{current_dt}.jl": {
+            # f"{name}_{current_dt}.jsonl": {
+            os.path.join(HOME_USER, "storage_jl", f"{name}_{current_dt}.jsonl"): {
                 "format": "jsonlines",
                 "encoding": "utf8",
                 "store_empty": False,
