@@ -33,7 +33,7 @@ class NocturneSpider(scrapy.Spider):
         },
         "FEEDS": {
             # f"{name}_{current_dt}.jsonl": {
-            os.path.join(HOME_USER, "storage_jl", f"{name}_{current_dt}.jsonl"): {
+            os.path.join(HOME_USER, "storage_jl", f"{name}_{current_dt}.jl"): {
                 "format": "jsonlines",
                 "encoding": "utf8",
                 "store_empty": False,
