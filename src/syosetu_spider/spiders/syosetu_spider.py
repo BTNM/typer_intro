@@ -20,6 +20,9 @@ class SyosetuSpider(scrapy.Spider):
 
     custom_settings = {
         "LOG_LEVEL": "INFO",
+        "USER_AGENT": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        # "DOWNLOAD_DELAY": 1,  # Respect robots.txt crawl delay
+        # "RANDOMIZE_DOWNLOAD_DELAY": 0.5,  # Randomize delay (0.5 * to 1.5 * DOWNLOAD_DELAY)
         "FEEDS": {
             #     f"{name}_{current_dt}.jsonl": {
             os.path.join(HOME_USER, "storage_jl", f"{name}_{current_dt}.jl"): {

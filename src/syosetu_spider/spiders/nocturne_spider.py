@@ -25,7 +25,7 @@ class NocturneSpider(scrapy.Spider):
         "LOG_LEVEL": "INFO",
         "ROBOTSTXT_OBEY": False,  # Disable robotstxt
         # "COOKIES_ENABLED": True,  # Set to False in settings, default = True
-        "DOWNLOAD_DELAY": 1,
+        # "DOWNLOAD_DELAY": 1,
         "DEFAULT_REQUEST_HEADERS": {
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.5",
