@@ -18,8 +18,16 @@ from typer_func import (
 )
 
 HOME_USER = os.path.expanduser("~")
+DEFAULT_DIRECTORY = "storage_jl"
 
 app = typer.Typer()
+
+
+def validate_directory(directory_path: str):
+    """Validates that a directory exists."""
+    if not os.path.exists(directory_path):
+        typer.echo(f"Directory not found at path: {directory_path}")
+        raise typer.Exit(1)
 
 
 @app.command()
@@ -66,9 +74,7 @@ def unpack(
     storage_directory_path = os.path.normpath(os.path.join(HOME_USER, directory))
     typer.echo(f"Processing directory: {storage_directory_path}")
 
-    if not os.path.exists(storage_directory_path):
-        typer.echo(f"Directory not found at path: {storage_directory_path}")
-        raise typer.Exit(1)
+    validate_directory(storage_directory_path)
 
     jsonl_files = find_jsonl_files(storage_directory_path)
 
@@ -100,9 +106,7 @@ def rename(
     storage_directory_path = os.path.normpath(os.path.join(HOME_USER, directory))
     typer.echo(f"Processing directory: {storage_directory_path}")
 
-    if not os.path.exists(storage_directory_path):
-        typer.echo(f"Directory not found at path: {storage_directory_path}")
-        raise typer.Exit(1)
+    validate_directory(storage_directory_path)
 
     # os.makedirs(directory_path, exist_ok=True)
     jsonl_files = find_jsonl_files(storage_directory_path)
@@ -139,9 +143,7 @@ def copy_rename(
     directory_path = os.path.normpath(os.path.join(HOME_USER, directory))
     typer.echo(f"Processing directory: {directory_path}")
 
-    if not os.path.exists(directory_path):
-        typer.echo(f"Directory not found at path: {directory_path}")
-        raise typer.Exit(1)
+    validate_directory(directory_path)
 
     # Create base output directory with _txt suffix
     storage_directory_name = f"{directory}_txt"
@@ -170,6 +172,13 @@ def copy_rename(
             typer.echo(f"Translation failed for: {file}")
 
 
+def _crawl_novel(spider_class, start_urls: str, start_chapter: int = None):
+    """Crawl the specified novel URL and save as JSONL file"""
+    process = CrawlerProcess(get_project_settings())
+    process.crawl(spider_class, start_urls=start_urls, start_chapter=start_chapter)
+    process.start()
+
+
 @app.command()
 def syosetu_spider(
     url: str = typer.Argument(
@@ -186,9 +195,9 @@ def syosetu_spider(
     ),
 ):
     """Crawl the specified Syosetu novel URL and save as JSONL file"""
-    process = CrawlerProcess(get_project_settings())
-    process.crawl(SyosetuSpider, start_urls=url, start_chapter=start_chapter)
-    process.start()
+    _crawl_novel(
+        spider_class=SyosetuSpider, start_urls=url, start_chapter=start_chapter
+    )
 
 
 @app.command()
@@ -207,9 +216,9 @@ def nocturne_spider(
     ),
 ):
     """Crawl the specified Nocturne novel URL and save as JSONL file"""
-    process = CrawlerProcess(get_project_settings())
-    process.crawl(NocturneSpider, start_urls=url, start_chapter=start_chapter)
-    process.start()
+    _crawl_novel(
+        spider_class=NocturneSpider, start_urls=url, start_chapter=start_chapter
+    )
 
 
 if __name__ == "__main__":

@@ -57,25 +57,15 @@ class NovelPackage:
 
     def check_reset_chunk_positions(self):
         """Reset chunk position counters if they reach output chapter length."""
-        if self.chunk_start_chapter == self.output_chapter_length:
-            self.chunk_start_chapter = 0
-        if self.chunk_end_chapter == self.output_chapter_length:
-            self.chunk_end_chapter = 0
+        for attributes in ["chunk_start_chapter", "chunk_end_chapter"]:
+            if getattr(self, attributes) == self.output_chapter_length:
+                setattr(self, attributes, 0)
 
     def process_chunk_position(self, chapter_number: int):
-        """
-        Process chapter chunk position and handle increment to increase start chapter position
-        """
-        # Check if chapter number matches the starting position in chunk pattern
-        increase_chunk_chapter_position = (
-            int(chapter_number) % self.output_chapter_length == self.chunk_start_chapter
-        )
-
-        if increase_chunk_chapter_position:
-            # Increment chunk values to increase start chapter position
+        """Process chapter chunk position if matches starting position handle increment to increase start chapter position."""
+        if int(chapter_number) % self.output_chapter_length == self.chunk_start_chapter:
             self.chunk_start_chapter += 1
             self.chunk_end_chapter += 1
-
             self.check_reset_chunk_positions()
 
     def check_start_new_chunk(self, chapter_number: int) -> None:
@@ -118,12 +108,15 @@ class NovelPackage:
         os.makedirs(output_text_directory, exist_ok=True)
 
         english_title = translate_title(self.novel_title)
+        if english_title == "Translation error invalid source language":
+            english_title = self.novel_title
         # Create a novel-specific directory using the novel title
         novel_directory = os.path.join(output_text_directory, english_title)
         os.makedirs(novel_directory, exist_ok=True)
 
         # Create filename with chapter range and truncated novel title
-        filename = f"{chapter_start_end} {self.novel_title[:30]}.txt"
+        title_length = 30
+        filename = f"{chapter_start_end} {self.novel_title[:title_length]}.txt"
 
         # Create full output path
         file_path = os.path.join(novel_directory, filename)

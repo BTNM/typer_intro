@@ -65,24 +65,30 @@ def process_jsonl_file(
                 novel.process_chunk_position(chapter.chapter_number)
                 continue
 
-            # Update novel metadata
-            novel.lastest_chapter = int(
-                chapter_data.get("chapter_start_end").split("/")[1]
-            )
-            novel.novel_title = chapter_data.get("novel_title", "")
-            novel.novel_description = chapter_data.get("novel_description", "")
-            novel.add_chapter(chapter)
+            _update_novel_metadata(novel, chapter_data, chapter)
+            _process_novel_chunk(novel, chapter.chapter_number)
 
-            # Check if start new chunk
-            novel.check_start_new_chunk(chapter.chapter_number)
 
-            # Write chunk if needed
-            if novel.should_write_chunk(chapter.chapter_number):
-                chapter_start_end, prefix = novel.add_chapter_prefix_start_end(
-                    novel.current_chapter_number, chapter.chapter_number
-                )
-                novel.write_chunk_to_file(
-                    text_content=prefix + novel.get_novel_text(),
-                    chapter_start_end=chapter_start_end,
-                )
-                novel.chapters.clear()
+def _update_novel_metadata(novel: NovelPackage, chapter_data: dict, chapter: Chapter):
+    """Update novel metadata from chapter data."""
+    novel.lastest_chapter = int(chapter_data.get("chapter_start_end").split("/")[1])
+    novel.novel_title = chapter_data.get("novel_title", "")
+    novel.novel_description = chapter_data.get("novel_description", "")
+    novel.add_chapter(chapter)
+
+
+def _process_novel_chunk(novel: NovelPackage, chapter_number: int):
+    """Process novel chunk and write to file if needed."""
+    # Check if start new chunk
+    novel.check_start_new_chunk(chapter_number)
+
+    # Write chunk if needed
+    if novel.should_write_chunk(chapter_number):
+        chapter_start_end, prefix = novel.add_chapter_prefix_start_end(
+            novel.current_chapter_number, chapter_number
+        )
+        novel.write_chunk_to_file(
+            text_content=prefix + novel.get_novel_text(),
+            chapter_start_end=chapter_start_end,
+        )
+        novel.chapters.clear()
