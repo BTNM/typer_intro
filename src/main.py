@@ -16,6 +16,8 @@ from typer_func import (
     find_jsonl_files,
     process_jsonl_file,
 )
+from novel_package_v2 import process_jsonl_file3
+from typer_func_old import process_jsonl_file_old
 
 HOME_USER = os.path.expanduser("~")
 DEFAULT_DIRECTORY = "storage_jl"
@@ -90,6 +92,62 @@ def unpack(
             typer.echo(f"Unpacking file: {file}")
             # process_jsonl_file_old(file, directory_path, length)
             process_jsonl_file(file, file_directory_path, length)
+
+
+@app.command()
+def unpack_old(
+    directory: str = typer.Argument(
+        default="storage_jl",
+        help="Input directory storage for raw jsonl files",
+        exists=True,
+        file_okay=True,
+    ),
+    length: int = typer.Option(
+        10, "--length", "-l", help="chapter text length to unpack jsonl file into"
+    ),
+):
+    """Unpack the JSONL file into a text file using old processing logic."""
+    storage_directory_path = os.path.normpath(os.path.join(HOME_USER, directory))
+    typer.echo(f"Processing directory: {storage_directory_path}")
+
+    validate_directory(storage_directory_path)
+
+    jsonl_files = find_jsonl_files(storage_directory_path)
+
+    if jsonl_files:
+        for file in jsonl_files:
+            file_directory_path = os.path.dirname(file)
+            typer.echo(f"Unpacking file: {file}")
+            process_jsonl_file_old(file, file_directory_path, length)
+
+
+@app.command()
+def unpack3(
+    directory: str = typer.Argument(
+        default="storage_jl",
+        help="Input directory storage for raw jsonl files",
+        exists=True,
+        file_okay=True,
+    ),
+    length: int = typer.Option(
+        10, "--length", "-l", help="chapter text length to unpack jsonl file into"
+    ),
+):
+    """Unpack the JSONL file into a text file using optimized processing logic."""
+    storage_directory_path = os.path.normpath(os.path.join(HOME_USER, directory))
+    typer.echo(f"Processing directory: {storage_directory_path}")
+
+    validate_directory(storage_directory_path)
+
+    jsonl_files = find_jsonl_files(storage_directory_path)
+
+    if jsonl_files:
+        for file in jsonl_files:
+            output_directory = get_new_directory(
+                file, HOME_USER, storage_directory_path, f"{directory}_text"
+            )
+            typer.echo(f"Unpacking file: {file}")
+            process_jsonl_file3(file, output_directory, length)
 
 
 @app.command()

@@ -39,7 +39,9 @@ def increase_chapter_modulo_rest_check(
     return chapter_start_modulo_rest, chapter_end_modulo_rest
 
 
-def modulo_increase_on_title_skip(chapter, output_chapter_range):
+def modulo_increase_on_title_skip(
+    chapter, output_chapter_range, chapter_start_modulo_rest, chapter_end_modulo_rest
+):
     title_skip = check_title_text_skip(chapter)
     if title_skip:
         # Increase chapter modulo check when skip chapter, if equal to output range reset to avoid start number on skipped chapters
@@ -56,8 +58,8 @@ def modulo_increase_on_title_skip(chapter, output_chapter_range):
                 )
             )
         # continue to next loop on if
-        return True
-    return False
+        return True, chapter_start_modulo_rest, chapter_end_modulo_rest
+    return False, chapter_start_modulo_rest, chapter_end_modulo_rest
 
 
 def add_main_text_content(chapter, main_text):
@@ -121,7 +123,15 @@ def process_jsonl_file_old(
             # Skip chapter content if chapter title in the skip list
             title_skip = check_title_text_skip(chapter)
 
-            if modulo_increase_on_title_skip(chapter, output_chapter_range):
+            skip_result, chapter_start_modulo_rest, chapter_end_modulo_rest = (
+                modulo_increase_on_title_skip(
+                    chapter,
+                    output_chapter_range,
+                    chapter_start_modulo_rest,
+                    chapter_end_modulo_rest,
+                )
+            )
+            if skip_result:
                 # continue to next loop on if
                 continue
 
