@@ -3,6 +3,7 @@ import glob
 import jsonlines
 from typing import Optional
 from novel_package import NovelPackage, Chapter
+from novel_package_v2 import process_jsonl_file3
 
 
 def find_jsonl_files(directory: str):
