@@ -7,7 +7,7 @@ import os
 sys.path.append("../../..")
 
 from bs4 import BeautifulSoup
-from syosetu_spider.items import NovelItem
+from ..items import NovelItem
 from datetime import datetime
 
 HOME_USER = os.path.expanduser("~")

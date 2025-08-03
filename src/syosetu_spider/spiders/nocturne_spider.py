@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 
 sys.path.append("../../..")
 
-from syosetu_spider.items import NovelItem
+from ..items import NovelItem
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from urllib.parse import urljoin
